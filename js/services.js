@@ -6,26 +6,27 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var GAP = 10;
 	var root = {};
 
-	root.validateInput = function(backUps, passwords, m, n){
-		for (var i = backUps.length - 1; i >= 0; i--) {
-			if (backUps[i] == "" || passwords[i] == "")
+	root.validateInput = function(dataInput, m, n){
+		lodash.each(dataInput, function(di){
+			if (di.backup == "" || di.password == "")
 				return "Please enter values for all entry boxes.";
 
 			try {
-				jQuery.parseJSON(backUps[i]);
+				jQuery.parseJSON(di.backup);
 			} catch(e) {
 				return "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
 			};
 
 			try {
-				sjcl.decrypt(passwords[i], backUps[i]);
-			} catch(e) {
+				sjcl.decrypt(di.password, di.backup);
+			} catch() {
 				return "Seems like your password is incorrect. Try again.";
 			};
 
-			if (JSON.parse(sjcl.decrypt(passwords[i], backUps[i])).m != m || JSON.parse(sjcl.decrypt(passwords[i], backUps[i])).n != n)
+			if (JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m || JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)
 				return "The wallet (" + i + ") type (m/n) is not matched with 'm' and 'n' values.";
-		}
+
+		});
 		return true;
 	}
 

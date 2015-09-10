@@ -51,7 +51,7 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 			dataInput.push(data);
 		}
 		
-		var validation = generatorServices.validateInput(backUps, passwords, m, n);
+		var validation = generatorServices.validateInput(dataInput, m, n);
 		var backupData = [];
 
 		if(validation == true){
