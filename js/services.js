@@ -4,6 +4,7 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var Transaction = bitcore.Transaction;
 	var Address = bitcore.Address;
 	var GAP = 20;
+	var fee = 10000;
 	var root = {};
 
 	root.validateInput = function(dataInput, m, n){
@@ -24,6 +25,13 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 				return result;
 			};
 
+			if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
+				result = "The wallet types (m-n) was not matched with values provided.";
+				console.log('Data input m-n: ' + m + '-' + n)
+				console.log('Data backup m-n: ' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).m + '-' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).n)))
+				return result;
+			}
+
 			try{
 				sjcl.decrypt(di.password, di.backup);
 				
@@ -40,11 +48,6 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 				return result;
 			};
 
-			if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
-				result = "The wallet types (m-n) was not matched with values provided.";
-				return result;
-			}
-
 			if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
                result = "You are using a backup that can't be use to sign.";
                return result;
@@ -58,21 +61,33 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 			return result;
 		}
 		else if(lodash.uniq(network).length > 1){
-			result = "Check the inputs type netrowks.";
+			result = "Check the input type netrowks.";
 			console.log("Validation result: " + result);
 			return result;
 		}
 		else{
-			console.log("Validation result Ok.");
+			console.log("Validation result: Ok.");
 			return true;
 		}
 	}
 
-	root.validateAddress = function(addr, totalBalance){
-		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
+	root.validateAddress = function(addr, totalBtc, network){
+		console.log('Validation in progress...');
+		console.log('Address: ', addr, '\nTotal BTC: ', totalBtc, '\nNetwork: ', network);
+
+		if(addr == '' || !Address.isValid(addr))
 			return 'Please enter a valid address.';
-		if(totalBalance <= 0)
-			return 'The balance in your wallet is 0';
+
+		if((totalBtc * 100000000 - fee).toFixed(0) <= 0)
+			return 'Funds are insufficient to complete the transaction';
+
+		try{
+			var address_ = new Address(addr, network);
+		}
+		catch (e){
+			return 'Address destination is not matched with the network backup type.';
+		}
+
 		return true;
 	}
 
@@ -133,7 +148,6 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 			// public key derivation
 			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
 			var derivedPublicKey = derivedHdPublicKey.publicKey;
-
 			derivedPublicKeys.push(derivedPublicKey);
 		});
 
@@ -159,12 +173,11 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 					addressData = {
 						address: respAddress.data.addrStr, 
 						balance: respAddress.data.balance,
+						unconfirmedBalance: respAddress.data.unconfirmedBalance,
 						utxo: respUtxo.data,
 						privKeys: address.privKeys,
 						pubKeys: address.pubKeys
 					};
-					// console.log("Address data:");
-					// console.log(addressData);
 				}
 				return callback(addressData);
 			});
@@ -179,11 +192,12 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
-	root.createRawTx = function(address, addressObjects, m){
+	root.createRawTx = function(address, netrowk, addressObjects, m){
 		var tx = new Transaction();
-		var fee = 10000;
 		var privKeys = [];
 		var totalBalance = 0;
+
+		var address_ = new Address(address, netrowk);
 
 		lodash.each(addressObjects, function(ao){
 			if(ao.utxo.length > 0){

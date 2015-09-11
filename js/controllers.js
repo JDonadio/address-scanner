@@ -1,5 +1,8 @@
 var app = angular.module("addressGeneratorApp", ["addressGeneratorApp.services", "ngLodash"]);
 app.controller("addressGeneratorController", function($scope, generatorServices, lodash){
+	var network = '';
+	var fee = 0.0001;
+	var totalBtc = 0;
 	var mainAddressObjects = [];
 	var changeAddressObjects = [];
 
@@ -11,7 +14,7 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 	$scope.backUp2 = '{"iv":"mFYqMGceR0Vx5zEmjrJbvg==","v":1,"iter":10000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"r8oXs6zFfhk=","ct":"vOc12h879oLO6Vy7O/wOIy7mmm6MD9la2AU1cuhYQqFjDdCJ57Uxpxf1k1akBNIwxSTEV03k4A+0kttyN63CTJs1CkG26i+/1iBiGDw9iKgPVbMn8QmCaklB0LMWtkriDkV3XB+BV116I3aniOi+hfTg9l9r0mId2y9mpz6ZfH1YRsVCXM9raCQIDe5SYU7lL7yln2jOtl1+s13t/vVWAJfWr4C9oice9HWxAVQXnTbBH8MWptxuQUy5rnt+6vmYvibMKO57hjOZoavqE/fzWJWvOz4TqNM1Z7LXMPmrbpXGrz9PsgwRvIC/T1XbPGtHHicq+7cgfh4Dko+bCk4ILBtcGdNRUdu9tLw4+zeAp+7nHpVXzdWvy4Ep9i80EliXKruHY7y3QOx8D0e2LGsGefqVYpwWsL3SokDxWE9df0RVxS/VCvlfpl67L7kBJOY/yB6H8qHIKLjVEUUR7wvxyBO0W6TE4RFWoZQf0wScUX/2ophNhz/UVmFyiBwgHRDqrcLr1rDwrby4XZdI/lowfnDrvrwscs+Iyd4fw6bfAgdVjaP+sdIaU7UD8tde4iC04+GwqQJx4fIvQHss97HcqQRBh/rBZgr1WVF0J+x8YFUNMdxeaBXQ4gy5FipKR5N4pJHt9dDZhOash0Vhb+cDhrsamW1u0NovZlU4ok1x/G6S5fEoWSOh+On5w1Ar0474ucNuoO8Zzk5xwNmPvJ2zSxv9KJCHp/mvavirLqmmS4ilbLbqK3Mbq6RUXAf6RCd6equv7k2rZaV8WcWc5vCDS/XlOB0E9PbetOVTwfgz54MtKt37nMW+sb9zdPIJnWyfRfQJTpmqJ80KGtZHXKQ7a7Z8vuXYMbb3VyQpbv9pgSjWd0+bECKceoYVPBr6kaYmPLkEKjL6tCwVdNd/mlf0wNNuV0V6uyx29YJz3IMDpU1/gK18JlsCSWyCcAdH0nwxAlkJqZAXjBWXH7kiRVamPgn4rpvWBij/vtRUP0dFag/i6L7yaBo3WO/hfG5wXwuY8cnTt2XU87Stc0KwMVBaIFqyn8P4tNlg6XigtEFYA/4j1yvK7IYOwvNpNuJsrwaAh/lHuvmC6lw8V29VkiHZ26XUj7B7fJrfSAFIsuJmp7k9Dc+Lsxi4RQShJ9h5kwz4TyG4ZwT2QLD50mnEDoN+I/BzceLD3zP8cPSHl/CxFRvDbfxJT1SmONIt1jxfBRnQ8O2ivk9K/mWwtKyFztXbv7Ki4/fkNlb3akVgrLB7f3jppNXlPbQk0n8wG9QQi1l4GS3ZEAw3UIEufNWGHPc4Lyumkf1C/Ut9YJXB/Q5mTDi5d/9lLph+QdkPl7Asi3q3nflqSOZTlSepiIlCXq3w0vFqI9m3LF9LYcmzPt2egF/pzn6IMIxqY6iVvTVr/owvFejy4tosvBs9iXMY/9Tkcoo2Mwa+npu9IXF3lzdgSuzBYJ0zXNXjci7z9tIT8pAm9pcGS9DFlX/kfALrWmJeIQlq9mnDvx5w1yCPl2CQ2pwJSEEvXaQ7gH8q7c3a/PQ/BxBpnkufYjFa+FMtTW7VV5Kg2lryJbEi60k9SO2iJqUAdV0hNk6I9XpcxevBEV7fBpKT65Jx/xv1mbpAcylKFEVTWnOoSIqX4Acv6TEjLBFRE5WV6yqprQ+O7YOlGMZ3ErD01BvZRtt92TXZEGGYWaDOZ8Pfr6VfGHVSVl85P3+qscHUPb31e2RhDsQ3zTx1bYm6WmjpUmmVnzKShMYLLPLg9bLQMGklPeFTCPXmtladR3P23iHeSNRfhipD8VgUIkC8gtAm5XpOPIjC4wNo7QJuD0ZfKokCyQcQRpg="}';
 	$scope.password2 = '1';
 	$scope.textArea = "";
-	$scope.addr = "2N3heXm5XoSFKyeASuo3Wfvadm6yKZQTipN";
+	// $scope.addr = "2N3heXm5XoSFKyeASuo3Wfvadm6yKZQTipN";
 
 	$('#form3, #form4, #form5, #form6').hide();
 
@@ -65,9 +68,8 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 				backupData.push(generatorServices.getBackupData(d.backup, d.password));
 			});
 
-			$scope.showMessage('Searching main addresses...', 1);
-			$scope.textArea = 'Main addresses:\n\n';
-			console.log("Getting addresses...");
+			network = lodash.uniq(lodash.pluck(backupData, 'network')).toString();
+			console.log('Network: ', network.toString());
 			$scope.generate(backupData);
 
 		}else{
@@ -79,6 +81,10 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 	$scope.generate = function(backupData){
 		var mainPath = "m/45'/2147483647/0/";
 		var changePath = "m/45'/2147483647/1/";
+
+		$scope.showMessage('Searching main addresses...', 1);
+		$scope.textArea = 'Main addresses:\n\n';
+		console.log("Getting addresses...");
 
 		// getting main addresses
 		generatorServices.getActiveAddresses(backupData, mainPath, n, function(mainAddressArray){
@@ -99,10 +105,10 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 			// getting change addresses
 			generatorServices.getActiveAddresses(backupData, changePath, n, function(changeAddressArray){
 				if(changeAddressArray.length > 0){
-					$scope.printFeedBack(changeAddressArray);
-					changeAddressObjects = changeAddressArray;
 					console.log("## Active change addresses:");
 					console.log(changeAddressObjects);
+					$scope.printFeedBack(changeAddressArray);
+					changeAddressObjects = changeAddressArray;
 				}
 				else{
 					$scope.textArea += 'No change addresses available.\n\n';
@@ -110,7 +116,12 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 				}
 
 				$("#button2").show();
-				$scope.showMessage('Search complete.', 1);
+
+				if((totalBtc - fee) > 0)
+					$scope.showMessage('Total amount to be recovered: ' + (totalBtc - fee).toFixed(8) + '  BTC.', 1);
+				else
+					$scope.showMessage('Total amount to be recovered: 0 BTC.', 1);
+
 				$scope.textArea += 'Search complete.\n\n';
 				console.log("Search complete.");
 			});
@@ -121,15 +132,19 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 		var totalFound = 0;
 				
 		lodash.each(addressObject, function(ao){
-			if(ao.balance > 0){
+			if(ao.utxo.length > 0){
 				// console.log(ao);
 				$scope.textArea += 'Address: ' + ao.address + '\n';
-				$scope.textArea += 'Balance: ' + ao.balance + '\n\n';
-
+				$scope.textArea += 'Balance: ' + ao.balance + '\n';
+				$scope.textArea += 'Unconfirmed balance: ' + ao.unconfirmedBalance + '\n\n';
+				lodash.each(ao.utxo, function(u){
+					totalBtc += u.amount;
+				})
+				console.log('@@@@@@ Addresses with unspent amount:', ao)
 				totalFound++;
 			}
 		});
-		$scope.textArea += 'Addresses found: ' + totalFound + '\n*************************\n';
+		$scope.textArea += 'Addresses with unspent amount: ' + totalFound + '\n********************************************\n';
 	}
 
 	$scope.hideMessage = function(){
@@ -167,16 +182,16 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 
 	$scope.send = function(){
 		var addr = $scope.addr;
-		var validation = generatorServices.validateAddress(addr, totalBalance);
+		var validation = generatorServices.validateAddress(addr, totalBtc, network.toString());
 
 		if(validation == true){
 			$scope.showMessage('Creating transaction to retrieve total amount...', 1);
 
-			var rawTx = generatorServices.createRawTx(addr, mainAddressObjects.concat(changeAddressObjects), m);
+			var rawTx = generatorServices.createRawTx(addr, network.toString(), mainAddressObjects.concat(changeAddressObjects), m);
 			
-			generatorServices.txBroadcast(rawTx).then(function(response){
-				$scope.showMessage('transaction complete.', 2);
-				console.log('Transaction complete.')
+			generatorServices.txBroadcast(rawTx).then(function(response, error){
+				$scope.showMessage((totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr, 2);
+				console.log('Transaction complete.  ' + (totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr);
 			});
 		}else
 			$scope.showMessage(validation, 3);
