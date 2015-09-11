@@ -3,56 +3,104 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
 	var Transaction = bitcore.Transaction;
 	var Address = bitcore.Address;
-	var GAP = 10;
+	var GAP = 20;
 	var root = {};
 
 	root.validateInput = function(dataInput, m, n){
+		var result = "";
+		var network = [];
+
 		lodash.each(dataInput, function(di){
-			if (di.backup == "" || di.password == "")
-				return "Please enter values for all entry boxes.";
+			if (di.backup == "" || di.password == ""){
+				result = "Please enter values for all entry boxes.";
+				return result;
+			}
 
-			try {
+			try{
 				jQuery.parseJSON(di.backup);
-			} catch(e) {
-				return "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+			} 
+			catch(e){
+				result = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+				return result;
 			};
 
-			try {
+			try{
 				sjcl.decrypt(di.password, di.backup);
-			} catch() {
-				return "Seems like your password is incorrect. Try again.";
+				
+				// try{
+				// 	sjcl.decrypt(di.password, sjcl.decrypt(di.password, di.backup));
+				// }
+				// catch(er)
+				// {
+				// 	// return;
+				// }
+			} 
+			catch(e) {
+				result = "Seems like your password is incorrect. Try again.";
+				return result;
 			};
 
-			if (JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m || JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)
-				return "The wallet (" + i + ") type (m/n) is not matched with 'm' and 'n' values.";
+			if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
+				result = "The wallet types (m-n) was not matched with values provided.";
+				return result;
+			}
 
+			if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
+               result = "You are using a backup that can't be use to sign.";
+               return result;
+           	}
+
+			network.push(JSON.parse(sjcl.decrypt(di.password, di.backup)).network);
 		});
+
+		if(result != ""){
+			console.log("Validation result: " + result);
+			return result;
+		}
+		else if(lodash.uniq(network).length > 1){
+			result = "Check the inputs type netrowks.";
+			console.log("Validation result: " + result);
+			return result;
+		}
+		else{
+			console.log("Validation result Ok.");
+			return true;
+		}
+	}
+
+	root.validateAddress = function(addr, totalBalance){
+		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
+			return 'Please enter a valid address.';
+		if(totalBalance <= 0)
+			return 'The balance in your wallet is 0';
 		return true;
 	}
 
 	root.getBackupData = function(backup, password){
 		var jBackup = JSON.parse(sjcl.decrypt(password, backup).toString());
-		
+
 		return {
+			network: jBackup.network,
 			xPrivKey: jBackup.xPrivKey,
 			m: jBackup.m,
 			n: jBackup.n
 		};
 	}
 
-	root.getAddressStatus = function(xPrivKeys, path, n, callback){
+	root.getActiveAddresses = function(backupData, path, n, callback){
 		var inactiveCount = 0;
 		var count = 0;
 		var activeAddress = [];
 
 		function derive(index){
-			root.generateAddress(xPrivKeys, path, index, n, function(address){	
+			root.generateAddress(backupData, path, index, n, function(address){	
 				root.getAddressData(address, function(addressData){
 
 					if (!jQuery.isEmptyObject(addressData)) {
 						activeAddress.push(addressData);
 						inactiveCount = 0;
-						// console.log(activeAddress);
+						console.log(">>>> Active address found!");
+						console.log(addressData);
 					}
 					else 
 						inactiveCount++;
@@ -67,10 +115,12 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		derive(0);
 	}
 
-	root.generateAddress = function(xPrivKeys, path, index, n, callback){
+	root.generateAddress = function(backupData, path, index, n, callback){
 		var derivedPublicKeys = [];
 		var derivedPrivateKeys = [];
 		var address = {};
+		var network = lodash.uniq(lodash.pluck(backupData, 'network'));
+		var xPrivKeys = lodash.pluck(backupData, 'xPrivKey');
 
 		lodash.each(xPrivKeys, function(xpk){
 			var hdPrivateKey = bitcore.HDPrivateKey(xpk);
@@ -88,7 +138,7 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		});
 
 		address = {
-			name: new bitcore.Address(derivedPublicKeys, parseInt(n)),
+			addressObject: bitcore.Address.createMultisig(derivedPublicKeys, n * 1, network),
 			pubKeys: derivedPublicKeys,
 			privKeys: derivedPrivateKeys
 		};
@@ -98,10 +148,10 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 
 	root.getAddressData = function(address, callback){
 		// call insight API to get address information
-		root.checkAddress(address.name).then(function(respAddress){
+		root.checkAddress(address.addressObject).then(function(respAddress){
 
 			// call insight API to get utxo information
-			root.checkUtxos(address.name).then(function(respUtxo){
+			root.checkUtxos(address.addressObject).then(function(respUtxo){
 
 				var addressData = {};
 
@@ -113,7 +163,8 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 						privKeys: address.privKeys,
 						pubKeys: address.pubKeys
 					};
-					// console.log(addressData)
+					// console.log("Address data:");
+					// console.log(addressData);
 				}
 				return callback(addressData);
 			});
@@ -128,33 +179,30 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
-	root.createRawTx = function(address, totalBalance, addressObjects, m){
+	root.createRawTx = function(address, addressObjects, m){
 		var tx = new Transaction();
-		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
+		var fee = 10000;
 		var privKeys = [];
+		var totalBalance = 0;
 
 		lodash.each(addressObjects, function(ao){
 			if(ao.utxo.length > 0){
 				lodash.each(ao.utxo, function(u){
+					totalBalance += u.amount;
 					tx.from(u, ao.pubKeys, m * 1);
 					privKeys = privKeys.concat(ao.privKeys);
 				});
 			}
 		});
 
+		var amount = parseInt((totalBalance * 100000000 - fee).toFixed(0));
+		
 		tx.to(address, amount);
 		tx.sign(lodash.uniq(privKeys));
 
 		var rawTx = tx.serialize();
+		console.log("Raw transaction: ", rawTx);
 		return rawTx;
-	}
-
-	root.validateAddress = function(addr, totalBalance){
-		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
-			return 'Please enter a valid address.';
-		if(totalBalance <= 0)
-			return 'The total balance in your address is 0';
-		return true;
 	}
 
 	root.txBroadcast = function(rawTx){
