@@ -1,5 +1,5 @@
-var app = angular.module("addressGeneratorApp", ["addressGeneratorApp.services", "ngLodash"]);
-app.controller("addressGeneratorController", function($scope, generatorServices, lodash){
+var app = angular.module("addressScannApp", ["addressScannApp.services", "ngLodash"]);
+app.controller("addressScannController", function($scope, scannServices, lodash){
 	var network = '';
 	var fee = 0.0001;
 	var totalBtc = 0;
@@ -26,6 +26,7 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 	$scope.getDataInput = function(){
 		$scope.hideMessage();
 		$("#button2").hide();
+		totalBtc = 0;
 		var backUps = [];
 		var passwords = [];
 		
@@ -55,13 +56,13 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 			}
 
 			console.log("Validation in progress...");
-			var validation = generatorServices.validateInput(dataInput, m, n);
+			var validation = scannServices.validateInput(dataInput, m, n);
 
 			if(validation == true){
 				var backupData = [];
 
 				lodash.each(dataInput, function(d){
-					backupData.push(generatorServices.getBackupData(d.backup, d.password));
+					backupData.push(scannServices.getBackupData(d.backup, d.password));
 				});
 
 				network = lodash.uniq(lodash.pluck(backupData, 'network')).toString();
@@ -87,7 +88,7 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 		console.log("Getting addresses...");
 
 		// getting main addresses
-		generatorServices.getActiveAddresses(backupData, mainPath, n, function(mainAddressArray){
+		scannServices.getActiveAddresses(backupData, mainPath, n, function(mainAddressArray){
 			if(mainAddressArray.length > 0){
 				$scope.printFeedBack(mainAddressArray);
 				mainAddressObjects = mainAddressArray;
@@ -103,12 +104,12 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 			$scope.textArea += 'Change addresses:\n\n';
 
 			// getting change addresses
-			generatorServices.getActiveAddresses(backupData, changePath, n, function(changeAddressArray){
+			scannServices.getActiveAddresses(backupData, changePath, n, function(changeAddressArray){
 				if(changeAddressArray.length > 0){
-					console.log("## Active change addresses:");
-					console.log(changeAddressObjects);
 					$scope.printFeedBack(changeAddressArray);
 					changeAddressObjects = changeAddressArray;
+					console.log("## Active change addresses:");
+					console.log(changeAddressObjects);
 				}
 				else{
 					$scope.textArea += 'No change addresses available.\n\n';
@@ -140,9 +141,10 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 				lodash.each(ao.utxo, function(u){
 					totalBtc += u.amount;
 				})
-				console.log('@@@@@@ Addresses with unspent amount:', ao)
+				console.log('@@@@@@ Addresses with unspent amount:', ao);
 				totalFound++;
 			}
+			console.log(totalBtc)
 		});
 		$scope.textArea += 'Addresses with unspent amount: ' + totalFound + '\n********************************************\n';
 	}
@@ -182,16 +184,20 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 
 	$scope.send = function(){
 		var addr = $scope.addr;
-		var validation = generatorServices.validateAddress(addr, totalBtc, network.toString());
+		var validation = scannServices.validateAddress(addr, totalBtc, network.toString());
 
 		if(validation == true){
 			$scope.showMessage('Creating transaction to retrieve total amount...', 1);
 
-			var rawTx = generatorServices.createRawTx(addr, network.toString(), mainAddressObjects.concat(changeAddressObjects), m);
+			var rawTx = scannServices.createRawTx(addr, network.toString(), mainAddressObjects.concat(changeAddressObjects), m);
 			
-			generatorServices.txBroadcast(rawTx, network. toString()).then(function(response, error){
-				$scope.showMessage((totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr, 2);
-				console.log('Transaction complete.  ' + (totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr);
+			scannServices.txBroadcast(rawTx, network. toString()).then(function(response, error){
+				if(error){
+
+				}else{
+					$scope.showMessage((totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr, 2);
+					console.log('Transaction complete.  ' + (totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr);
+				}
 			});
 		}else
 			$scope.showMessage(validation, 3);

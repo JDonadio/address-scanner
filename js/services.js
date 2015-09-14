@@ -1,5 +1,5 @@
-var app = angular.module("addressGeneratorApp.services",['ngLodash']);
-app.service('generatorServices',['$http', 'lodash',function($http, lodash){
+var app = angular.module("addressScannApp.services",['ngLodash']);
+app.service('scannServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
 	var Transaction = bitcore.Transaction;
 	var Address = bitcore.Address;
@@ -78,23 +78,31 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	}
 
 	root.validateAddress = function(addr, totalBtc, network){
+		result = '';
 		console.log('Validation in progress...');
 		console.log('Address: ', addr, '\nTotal BTC: ', totalBtc, '\nNetwork: ', network);
 
 		if(addr == '' || !Address.isValid(addr))
-			return 'Please enter a valid address.';
+			return result = 'Please enter a valid address.';
 
 		if((totalBtc * 100000000 - fee).toFixed(0) <= 0)
-			return 'Funds are insufficient to complete the transaction';
+			return result = 'Funds are insufficient to complete the transaction';
 
 		try{
-			var address_ = new Address(addr, network);
+			new Address(addr, network);
 		}
 		catch (e){
-			return 'Address destination is not matched with the network backup type.';
+			return result = 'Address destination is not matched with the network backup type.';
 		}
 
-		return true;
+		if(result != ''){
+			console.log("Validation result: " + result);
+			return result;
+		}
+		else{
+			console.log("Validation result: Ok.");
+			return true;
+		}
 	}
 
 	root.getBackupData = function(backup, password){
