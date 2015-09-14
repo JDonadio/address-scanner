@@ -103,13 +103,14 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	}
 
 	root.getActiveAddresses = function(backupData, path, n, callback){
+		var network = lodash.uniq(lodash.pluck(backupData, 'network')).toString();
 		var inactiveCount = 0;
 		var count = 0;
 		var activeAddress = [];
 
 		function derive(index){
 			root.generateAddress(backupData, path, index, n, function(address){	
-				root.getAddressData(address, function(addressData){
+				root.getAddressData(address, network, function(addressData){
 
 					if (!jQuery.isEmptyObject(addressData)) {
 						activeAddress.push(addressData);
@@ -160,12 +161,12 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		return callback(address);
 	}
 
-	root.getAddressData = function(address, callback){
+	root.getAddressData = function(address, network, callback){
 		// call insight API to get address information
-		root.checkAddress(address.addressObject).then(function(respAddress){
+		root.checkAddress(address.addressObject, network).then(function(respAddress){
 
 			// call insight API to get utxo information
-			root.checkUtxos(address.addressObject).then(function(respUtxo){
+			root.checkUtxos(address.addressObject, network).then(function(respUtxo){
 
 				var addressData = {};
 
@@ -184,12 +185,18 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		});
 	}
 
-	root.checkAddress = function(address){
-		return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '?noTxList=1');
+	root.checkAddress = function(address, netrowk){
+		if(netrowk == 'testnet')
+			return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '?noTxList=1');
+		else
+			return $http.get('https://insight.bitpay.com/api/addr/' + address + '?noTxList=1');
 	}
 
-	root.checkUtxos = function(address){
-	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
+	root.checkUtxos = function(address, netrowk){
+		if (netrowk == 'testnet')
+	    	return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
+	    else
+	    	return $http.get('https://insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
 	root.createRawTx = function(address, netrowk, addressObjects, m){
@@ -219,8 +226,11 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		return rawTx;
 	}
 
-	root.txBroadcast = function(rawTx){
-		return $http.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: rawTx});
+	root.txBroadcast = function(rawTx, netrowk){
+		if (netrowk == 'testnet')
+			return $http.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: rawTx});
+		else
+			return $http.post('https://insight.bitpay.com/api/tx/send', {rawtx: rawTx});
 	}
 
 	return root;

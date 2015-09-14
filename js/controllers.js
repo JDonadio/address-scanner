@@ -189,7 +189,7 @@ app.controller("addressGeneratorController", function($scope, generatorServices,
 
 			var rawTx = generatorServices.createRawTx(addr, network.toString(), mainAddressObjects.concat(changeAddressObjects), m);
 			
-			generatorServices.txBroadcast(rawTx).then(function(response, error){
+			generatorServices.txBroadcast(rawTx, network. toString()).then(function(response, error){
 				$scope.showMessage((totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr, 2);
 				console.log('Transaction complete.  ' + (totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr);
 			});
