@@ -11,63 +11,69 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		var result = "";
 		var network = [];
 
-		lodash.each(dataInput, function(di){
-			if (di.backup == "" || di.password == ""){
-				result = "Please enter values for all entry boxes.";
+		if(dataInput.length == n){
+			lodash.each(dataInput, function(di){
+
+				if (di.backup == "" || di.password == ""){
+					result = "Please enter values for all entry boxes.";
+					return result;
+				}
+
+				try{
+					JSON.parse(di.backup);
+				} 
+				catch(e){
+					result = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+					return result;
+				};
+
+				if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
+					result = "The wallet types (m-n) was not matched with values provided.";
+					console.log('Data input m-n: ' + m + '-' + n)
+					console.log('Data backup m-n: ' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).m + '-' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).n)))
+					return result;
+				}
+
+				try{
+					sjcl.decrypt(di.password, di.backup);
+					
+					// try{
+					// 	sjcl.decrypt(di.password, sjcl.decrypt(di.password, di.backup));
+					// }
+					// catch(er)
+					// {
+					// 	// return;
+					// }
+				} 
+				catch(e) {
+					result = "Seems like your password is incorrect. Try again.";
+					return result;
+				};
+
+				if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
+	               result = "You are using a backup that can't be use to sign.";
+	               return result;
+	           	}
+
+				network.push(JSON.parse(sjcl.decrypt(di.password, di.backup)).network);
+			});
+
+			if(result != ""){
+				console.log("Validation result: " + result);
 				return result;
 			}
-
-			try{
-				jQuery.parseJSON(di.backup);
-			} 
-			catch(e){
-				result = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
-				return result;
-			};
-
-			if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
-				result = "The wallet types (m-n) was not matched with values provided.";
-				console.log('Data input m-n: ' + m + '-' + n)
-				console.log('Data backup m-n: ' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).m + '-' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).n)))
+			else if(lodash.uniq(network).length > 1){
+				result = "Check the input type networks.";
+				console.log("Validation result: " + result);
 				return result;
 			}
-
-			try{
-				sjcl.decrypt(di.password, di.backup);
-				
-				// try{
-				// 	sjcl.decrypt(di.password, sjcl.decrypt(di.password, di.backup));
-				// }
-				// catch(er)
-				// {
-				// 	// return;
-				// }
-			} 
-			catch(e) {
-				result = "Seems like your password is incorrect. Try again.";
-				return result;
-			};
-
-			if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
-               result = "You are using a backup that can't be use to sign.";
-               return result;
-           	}
-
-			network.push(JSON.parse(sjcl.decrypt(di.password, di.backup)).network);
-		});
-
-		if(result != ""){
-			console.log("Validation result: " + result);
+			else{
+				console.log("Validation result: Ok.");
+				return true;
+			}
+		}else{
+			result = "Please enter values for all entry boxes.";
 			return result;
-		}
-		else if(lodash.uniq(network).length > 1){
-			result = "Check the input type netrowks.";
-			console.log("Validation result: " + result);
-			return result;
-		}
-		else{
-			console.log("Validation result: Ok.");
-			return true;
 		}
 	}
 
@@ -155,7 +161,8 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		address = {
 			addressObject: bitcore.Address.createMultisig(derivedPublicKeys, n * 1, network),
 			pubKeys: derivedPublicKeys,
-			privKeys: derivedPrivateKeys
+			privKeys: derivedPrivateKeys,
+			path: path + index
 		};
 
 		return callback(address);
@@ -177,7 +184,8 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 						unconfirmedBalance: respAddress.data.unconfirmedBalance,
 						utxo: respUtxo.data,
 						privKeys: address.privKeys,
-						pubKeys: address.pubKeys
+						pubKeys: address.pubKeys,
+						path: address.path
 					};
 				}
 				return callback(addressData);
