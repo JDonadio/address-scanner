@@ -144,7 +144,6 @@ app.controller("addressScannController", function($scope, scannServices, lodash)
 				console.log('@@@@@@ Addresses with unspent amount:', ao);
 				totalFound++;
 			}
-			console.log(totalBtc)
 		});
 		$scope.textArea += 'Addresses with unspent amount: ' + totalFound + '\n********************************************\n';
 	}
@@ -193,7 +192,7 @@ app.controller("addressScannController", function($scope, scannServices, lodash)
 			
 			scannServices.txBroadcast(rawTx, network. toString()).then(function(response, error){
 				if(error){
-
+					console.log('Check your balance to retrieve the unspent amount and make the broadcast.')
 				}else{
 					$scope.showMessage((totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr, 2);
 					console.log('Transaction complete.  ' + (totalBtc - fee).toFixed(8) + ' BTC sent to address: ' + addr);
