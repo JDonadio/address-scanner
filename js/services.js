@@ -27,28 +27,20 @@ app.service('scannServices',['$http', 'lodash',function($http, lodash){
 					return result;
 				};
 
+				try{
+					sjcl.decrypt(di.password, di.backup);
+				} 
+				catch(e) {
+					result = "Seems like your password is incorrect. Try again.";
+					return result;
+				};
+
 				if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
 					result = "The wallet types (m-n) was not matched with values provided.";
 					console.log('Data input m-n: ' + m + '-' + n)
 					console.log('Data backup m-n: ' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).m + '-' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).n)))
 					return result;
 				}
-
-				try{
-					sjcl.decrypt(di.password, di.backup);
-					
-					// try{
-					// 	sjcl.decrypt(di.password, sjcl.decrypt(di.password, di.backup));
-					// }
-					// catch(er)
-					// {
-					// 	// return;
-					// }
-				} 
-				catch(e) {
-					result = "Seems like your password is incorrect. Try again.";
-					return result;
-				};
 
 				if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
 	               result = "You are using a backup that can't be use to sign.";
