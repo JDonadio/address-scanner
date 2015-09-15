@@ -12,13 +12,13 @@ app.service('recoveryServices',['$http', 'lodash',function($http, lodash){
         var network = [];
         var walletId =[];
         var copayerId =[];
-
+console.log('M Y N: ',m,n);
         if(dataInput.length == n){
             var decryptData;
 
             lodash.each(dataInput, function(di){
 
-                if (di.backup == "" || di.password == ""){
+                if (!di.backup || !di.password ){
                     result = "Please enter values for all entry boxes.";
                     return result;
                 }
@@ -42,7 +42,7 @@ app.service('recoveryServices',['$http', 'lodash',function($http, lodash){
                 if ((JSON.parse(decryptData).m != m) || (JSON.parse(decryptData).n != n)){
                     result = "The wallet types (m-n) was not matched with values provided.";
                     console.log('Data input m-n: ' + m + '-' + n);
-                    console.log('Data backup m-n: ' + (JSON.parse(decryptData).m + '-' + (decryptData).n));
+                    console.log('Data backup m-n: ' + (JSON.parse(decryptData).m + '-' + JSON.parse(decryptData).n));
                     return result;
                 }
 
@@ -67,13 +67,13 @@ app.service('recoveryServices',['$http', 'lodash',function($http, lodash){
                 return result;
             }
             
-            if(lodash.uniq(copayerId).length!=m){
-            	result = "You are using the same backup in some inputs";
+            if(lodash.uniq(copayerId).length != m){
+            	result = "Is not possible load more than one backup per copayer.";
             	return result;
             }
             
             if(lodash.uniq(walletId).length > 1){
-            	result = "You are using a backup from a different wallet.";
+            	result = "Is not possible load backups from different wallets.";
             	return result;
             }
 			

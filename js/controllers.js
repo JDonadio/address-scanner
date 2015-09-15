@@ -35,8 +35,6 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 	});
 
 	$scope.getDataInput = function(){
-		var m = $('#selectM').find('option:selected').attr('id');
-		var n = $('#selectN').find('option:selected').attr('id');
 		var backUps = [];
 		var passwords = [];
 		hideMessage();
@@ -60,7 +58,7 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 
 			for(var i=0; i<n ;i++){
 				data = {
-					backup: backUps[i].toString(),
+					backup: backUps[i],
 					password :passwords[i]
 				};
 				dataInput.push(data);
