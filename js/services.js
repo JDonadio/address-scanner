@@ -1,5 +1,5 @@
-var app = angular.module("addressScannApp.services",['ngLodash']);
-app.service('scannServices',['$http', 'lodash',function($http, lodash){
+var app = angular.module("recoveryApp.services",['ngLodash']);
+app.service('recoveryServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
 	var Transaction = bitcore.Transaction;
 	var Address = bitcore.Address;
@@ -8,71 +8,87 @@ app.service('scannServices',['$http', 'lodash',function($http, lodash){
 	var root = {};
 
 	root.validateInput = function(dataInput, m, n){
-		var result = "";
-		var network = [];
+        var result = "";
+        var network = [];
+        var walletId =[];
+        var copayerId =[];
 
-		if(dataInput.length == n){
-			lodash.each(dataInput, function(di){
+        if(dataInput.length == n){
+            var decryptData;
 
-				if (di.backup == "" || di.password == ""){
-					result = "Please enter values for all entry boxes.";
-					return result;
+            lodash.each(dataInput, function(di){
+
+                if (di.backup == "" || di.password == ""){
+                    result = "Please enter values for all entry boxes.";
+                    return result;
+                }
+
+                try{
+                    JSON.parse(di.backup);
+                } 
+                catch(e){
+                    result = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+                    return result;
+                };
+
+                try{
+                    decryptData = sjcl.decrypt(di.password, di.backup);
+                } 
+                catch(e) {
+                    result = "Seems like your password is incorrect. Try again.";
+                    return result;
+                };
+
+                if ((JSON.parse(decryptData).m != m) || (JSON.parse(decryptData).n != n)){
+                    result = "The wallet types (m-n) was not matched with values provided.";
+                    console.log('Data input m-n: ' + m + '-' + n);
+                    console.log('Data backup m-n: ' + (JSON.parse(decryptData).m + '-' + (decryptData).n));
+                    return result;
+                }
+
+                if(!(JSON.parse(decryptData).xPrivKey)){
+                   result = "You are using a backup that can't be use to sign.";
+                   return result;
 				}
 
-				try{
-					JSON.parse(di.backup);
-				} 
-				catch(e){
-					result = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
-					return result;
-				};
+				walletId.push(JSON.parse(decryptData).walletId);
+				copayerId.push(JSON.parse(decryptData).copayerId);
+				network.push(JSON.parse(decryptData).network);
+            });
 
-				try{
-					sjcl.decrypt(di.password, di.backup);
-				} 
-				catch(e) {
-					result = "Seems like your password is incorrect. Try again.";
-					return result;
-				};
+            if(result != ""){
+                console.log("Validation result: " + result);
+                return result;
+            }
 
-				if ((JSON.parse(sjcl.decrypt(di.password, di.backup)).m != m) || (JSON.parse(sjcl.decrypt(di.password, di.backup)).n != n)){
-					result = "The wallet types (m-n) was not matched with values provided.";
-					console.log('Data input m-n: ' + m + '-' + n)
-					console.log('Data backup m-n: ' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).m + '-' + (JSON.parse(sjcl.decrypt(di.password, di.backup)).n)))
-					return result;
-				}
-
-				if(JSON.parse(sjcl.decrypt(di.password, di.backup)).xPrivKey = ""){
-	               result = "You are using a backup that can't be use to sign.";
-	               return result;
-	           	}
-
-				network.push(JSON.parse(sjcl.decrypt(di.password, di.backup)).network);
-			});
-
-			if(result != ""){
-				console.log("Validation result: " + result);
-				return result;
-			}
-			else if(lodash.uniq(network).length > 1){
-				result = "Check the input type networks.";
-				console.log("Validation result: " + result);
-				return result;
-			}
-			else{
-				console.log("Validation result: Ok.");
-				return true;
-			}
-		}else{
-			result = "Please enter values for all entry boxes.";
-			return result;
-		}
-	}
+            if(lodash.uniq(network).length > 1){
+                result = "Check the input type networks.";
+                console.log("Validation result: " + result);
+                return result;
+            }
+            
+            if(lodash.uniq(copayerId).length!=m){
+            	result = "You are using the same backup in some inputs";
+            	return result;
+            }
+            
+            if(lodash.uniq(walletId).length > 1){
+            	result = "You are using a backup from a different wallet.";
+            	return result;
+            }
+			
+			console.log("Validation result: Ok.");
+			return true;
+        }else{
+            result = "Please enter values for all entry boxes.";
+            return result;
+        }
+    }
 
 	root.validateAddress = function(addr, totalBtc, network){
 		result = '';
 		console.log('Validation in progress...');
-		console.log('Address: ', addr, '\nTotal BTC: ', totalBtc, '\nNetwork: ', network);
+		console.log('Address: ', addr, '\nTotal BTC: ', totalBtc.toFixed(8), '\nNetwork: ', network);
 
 		if(addr == '' || !Address.isValid(addr))
 			return result = 'Please enter a valid address.';

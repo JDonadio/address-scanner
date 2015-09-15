@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="addressScannApp">
+<html ng-app="recoveryApp">
     <head>
         <meta charset="utf-8">
         <script type="text/javascript" src="../bower_components/angular/angular.js"></script>
@@ -14,11 +14,11 @@
         <script type="text/javascript" src="../js/controllers.js"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-        <title>Address Scanner</title>
+        <title>Copay recovery tool</title>
     </head>
-    <body ng-controller="addressScannController">
+    <body ng-controller="recoveryController">
         <div align="center">
-            <h2>Address scanner</h2>
+            <h2>Copay recovery tool</h2>
         </div>
         <div class="row">
             <div class="col-xs-5">
@@ -37,64 +37,150 @@
         <div class="row">
             <div class="col-lg-3 col-lg-offset-1">
                 <form>
-                    <label>Number of signatures:</label>
-                    <select class="form-group" id="selectM">
-                        <option id="1">1</option>
-                        <option id="2">2</option>
-                        <option id="3">3</option>
-                        <option id="4">4</option>
-                        <option id="5">5</option>
-                        <option id="6">6</option>
-                    </select><br>
-                    <label>Number of copayers:</label>
-                    <select class="form-group" id="selectN">
-                        <option id="1">1</option>
-                        <option id="2">2</option>
-                        <option id="3">3</option>
-                        <option id="4">4</option>
-                        <option id="5">5</option>
-                        <option id="6">6</option>
-                    </select>
-                    <div class="form-group" id="form1">
-                        <label for="backUp1">Insert your Backup JSON 1:</label>
-                        <input type="text" class="form-control" ng-model="backUp1">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password1">
+
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a data-toggle="tab" href="#walletType">Wallet type</a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#dataInput">Data input</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div id="walletType" class="tab-pane fade in active">
+                            <br>
+                            <label>Required signatures:</label>
+                            <select class="form-group" id="selectM">
+                                <option id="1">1</option>
+                                <option id="2">2</option>
+                                <option id="3">3</option>
+                                <option id="4">4</option>
+                                <option id="5">5</option>
+                                <option id="6">6</option>
+                            </select><br>
+
+                            <label>Number of copayers:</label>
+                            <select class="form-group" id="selectN">
+                                <option id="1">1</option>
+                                <option id="2">2</option>
+                                <option id="3">3</option>
+                                <option id="4">4</option>
+                                <option id="5">5</option>
+                                <option id="6">6</option>
+                            </select><br>
+                        </div>
+
+                        <div id="dataInput" class="tab-pane fade">
+                            <div id="block1">
+                                <br>
+                                <label>Backup JSON 1:</label>
+                                <input class="target" type="checkbox" style="margin-left: 5em" id="check1"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup1">
+                                    <input type="text" class="form-control" ng-model="backUp1">
+                                </div>
+                                <div class="form-group" id="backupFile1" style="display: none">
+                                    <input type="file" id="file1">
+                                </div>
+                                <div class="form-group" id="password1">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password1">
+                                </div>
+                            </div>
+
+                            <div id="block2" style="display: none">
+                                <br>
+                                <label>Backup JSON 2:</label>
+                                <input class="target" type="checkbox" style="margin-left: 5em" id="check2"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup2">
+                                    <input type="text" class="form-control" ng-model="backUp2">
+                                </div>
+                                <div class="form-group" id="backupFile2" style="display: none">
+                                    <input type="file" id="file2">
+                                </div>
+                                <div class="form-group" id="password2">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password2">
+                                </div>
+                            </div>
+
+                            <div id="block3" style="display: none">
+                                <br>
+                                <label>Backup JSON 3:</label>
+                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check3"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup3">
+                                    <input type="text" class="form-control" ng-model="backUp3">
+                                </div>
+                                <div class="form-group" id="backupFile3" style="display: none">
+                                    <input type="file" id="file3">
+                                </div>
+                                <div class="form-group" id="password3">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password3">
+                                </div>
+                            </div>
+
+                            <div id="block4" style="display: none">
+                                <br>
+                                <label>Backup JSON 4:</label>
+                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check4"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup4">
+                                    <input type="text" class="form-control" ng-model="backUp4">
+                                </div>
+                                <div class="form-group" id="backupFile4" style="display: none">
+                                    <input type="file" id="file4">
+                                </div>
+                                <div class="form-group" id="password4">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password4">
+                                </div>
+                            </div>
+
+                            <div id="block5" style="display: none">
+                                <br>
+                                <label>Backup JSON 5:</label>
+                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check5"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup5">
+                                    <input type="text" class="form-control" ng-model="backUp5">
+                                </div>
+                                <div class="form-group" id="backupFile5" style="display: none">
+                                    <input type="file" id="file5">
+                                </div>
+                                <div class="form-group" id="password5">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password5">
+                                </div>
+                            </div>
+
+                            <div id="block6" style="display: none">
+                                <br>
+                                <label>Backup JSON 6:</label>
+                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check6"> Read from a file
+                                <br><br>
+                                <div class="form-group" id="backup6">
+                                    <input type="text" class="form-control" ng-model="backUp6">
+                                </div>
+                                <div class="form-group" id="backupFile6" style="display: none">
+                                    <input type="file" id="file6">
+                                </div>
+                                <div class="form-group" id="password6">
+                                    <label>Password:</label>
+                                    <input type="password" class="form-control" ng-model="password6">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group" id="form2">
-                        <label for="backUp2">Insert your Backup JSON 2:</label>
-                        <input type="text" class="form-control" ng-model="backUp2">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password2">
-                    </div>
-                    <div class="form-group" id="form3">
-                        <label for="backUp3">Insert your Backup JSON 3:</label>
-                        <input type="text" class="form-control" ng-model="backUp3">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password3">
-                    </div>
-                    <div class="form-group" id="form4">
-                        <label for="backUp4">Insert your Backup JSON 4:</label>
-                        <input type="text" class="form-control" ng-model="backUp4">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password4">
-                    </div>
-                    <div class="form-group" id="form5">
-                        <label for="backUp5">Insert your Backup JSON 5:</label>
-                        <input type="text" class="form-control" ng-model="backUp5">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password5">
-                    </div>
-                    <div class="form-group" id="form6">
-                        <label for="backUp6">Insert your Backup JSON 6:</label>
-                        <input type="text" class="form-control" ng-model="backUp6">
-                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password6">
-                    </div>
+
                     <button class="btn btn-success" ng-click="getDataInput()">Scan addresses</button><br><br>
+                    
                     <div id="button2" style="display: none;">
                         <div class="form-group">
-                            <label for="addr">Insert destination address:</label>
+                            <label for="addr">Destination address:</label>
                             <input type="text" class="form-control" ng-model="addr">
                         </div>
                         <div class="form-group">
