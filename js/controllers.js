@@ -5,9 +5,10 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 	var totalBtc = 0;
 	var mainAddressObjects = [];
 	var changeAddressObjects = [];
-
 	var m = $('#selectM').find('option:selected').attr('id');
 	var n = $('#selectN').find('option:selected').attr('id');
+
+	$scope.backUp = [];
 
 	$('#selectM').change(function(){
 		m = $(this).find('option:selected').attr('id');
@@ -21,9 +22,9 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
    			$('#block' + i).show();
 	});
 
-	$('.target').change(function(){
+	$('.checkFile').change(function(){
 		for (var j=1; j<=n ;j++){
-			if($('#check'+j).prop('checked')){
+			if($('#checkFile'+j).prop('checked')){
 				$('#backup'+j).hide();
 				$('#backupFile'+j).show();
 			}
@@ -34,15 +35,33 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 		}
 	});
 
+	$('.checkPass').change(function(){
+		for(var k=1; k<=n ;k++){
+			if($('#checkPass'+k).prop('checked'))
+				$('#passwordX'+k).show();
+			else
+				$('#passwordX'+k).hide();
+		}
+	});
+
+	$scope.showContent = function($fileContent, index){
+    	$scope.backUp[index] = $fileContent;
+    	$('#backup'+index).show();
+		$('#backupFile'+index).hide();
+		$('#check'+index).prop('checked', false);
+	}
+
 	$scope.getDataInput = function(){
 		var backUps = [];
 		var passwords = [];
+		var passwordsX = [];
 		hideMessage();
 		$("#button2").hide();
 		totalBtc = 0;
-		
-		backUps.push($scope.backUp1,$scope.backUp2,$scope.backUp3,$scope.backUp4,$scope.backUp5,$scope.backUp6);
-		passwords.push($scope.password1,$scope.password2,$scope.password3,$scope.password4,$scope.password5,$scope.password6);
+
+		backUps.push($scope.backUp[1],$scope.backUp[2],$scope.backUp[3],$scope.backUp[4],$scope.backUp[5],$scope.backUp[6]);
+		passwords.push($scope.pass1,$scope.pass2,$scope.pass3,$scope.pass4,$scope.pass5,$scope.pass6);
+		passwordsX.push($scope.passX1, $scope.passX2, $scope.passX3, $scope.passX4, $scope.passX5, $scope.passX6);
 		
 		backUps = lodash.remove(backUps,function (r){
 			return !lodash.isUndefined(r);
@@ -59,7 +78,8 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 			for(var i=0; i<n ;i++){
 				data = {
 					backup: backUps[i],
-					password :passwords[i]
+					password: passwords[i],
+					passwordX: passwordsX[i]
 				};
 				dataInput.push(data);
 			}
@@ -71,7 +91,7 @@ app.controller("recoveryController", function($scope, recoveryServices, lodash){
 				var backupData = [];
 
 				lodash.each(dataInput, function(d){
-					backupData.push(recoveryServices.getBackupData(d.backup, d.password));
+					backupData.push(recoveryServices.getBackupData(d.backup, d.password, d.passwordX));
 				});
 
 				network = lodash.uniq(lodash.pluck(backupData, 'network')).toString();

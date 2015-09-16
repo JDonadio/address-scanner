@@ -8,6 +8,7 @@
         <script type="text/javascript" src="../bower_components/bitcore/bitcore.js"></script>
         <script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
         <script type="text/javascript" src="../bower_components/ng-lodash/build/ng-lodash.min.js"></script>
+        <script type="text/javascript" src="../bower_components/angular-fileupload/angular-filereader.js"></script>
         <script type="text/javascript" src="../bower_components/angular-local-storage/dist/angular-local-storage.js"></script>
         <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="../js/services.js"></script>
@@ -74,108 +75,136 @@
                         <div id="dataInput" class="tab-pane fade">
                             <div id="block1">
                                 <br>
-                                <label>Backup JSON 1:</label>
-                                <input class="target" type="checkbox" style="margin-left: 5em" id="check1"> Read from a file
-                                <br><br>
+                                <label>Backup 1:</label>
+                                <input class="checkFile" type="checkbox" style="margin-left: 85px" id="checkFile1"> Load backup file
+                                <br>
                                 <div class="form-group" id="backup1">
-                                    <input type="text" class="form-control" ng-model="backUp1">
+                                    <input type="text" class="form-control" ng-model="backUp[1]">
                                 </div>
                                 <div class="form-group" id="backupFile1" style="display: none">
-                                    <input type="file" id="file1">
+                                    <input type="file" ng-model="file1" on-read-file="showContent($fileContent, 1)" accept="application/json, .txt">
                                 </div>
                                 <div class="form-group" id="password1">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password1">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass1"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass1" placeholder="Password">
                                 </div>
+                                <div class="form-goup" id="passwordX1" style="display: none">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX1" placeholder="Encrypted private key">
+                                </div><hr>
                             </div>
 
                             <div id="block2" style="display: none">
+                                <label>Backup 2:</label>
+                                <input class="checkFile" type="checkbox" style="margin-left: 85px" id="checkFile2"> Load backup file
                                 <br>
-                                <label>Backup JSON 2:</label>
-                                <input class="target" type="checkbox" style="margin-left: 5em" id="check2"> Read from a file
-                                <br><br>
                                 <div class="form-group" id="backup2">
-                                    <input type="text" class="form-control" ng-model="backUp2">
+                                    <input type="text" class="form-control" ng-model="backUp[2]">
                                 </div>
                                 <div class="form-group" id="backupFile2" style="display: none">
-                                    <input type="file" id="file2">
+                                    <input type="file" ng-model="file2" on-read-file="showContent($fileContent, 2)" accept="application/json, .txt">
                                 </div>
                                 <div class="form-group" id="password2">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password2">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass2"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass2" placeholder="Password">
                                 </div>
+                                <div class="form-goup" id="passwordX2" style="display: none">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX2" placeholder="Encrypted private key">
+                                </div><hr>
                             </div>
 
                             <div id="block3" style="display: none">
+                                <label>Backup 3:</label>
+                                <input class="checkFile"  type="checkbox" style="margin-left: 85px" id="checkFile3"> Load backup file
                                 <br>
-                                <label>Backup JSON 3:</label>
-                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check3"> Read from a file
-                                <br><br>
                                 <div class="form-group" id="backup3">
-                                    <input type="text" class="form-control" ng-model="backUp3">
+                                    <input type="text" class="form-control" ng-model="backUp[3]">
                                 </div>
                                 <div class="form-group" id="backupFile3" style="display: none">
-                                    <input type="file" id="file3">
+                                    <input type="file" ng-model="file3" on-read-file="showContent($fileContent, 3)" accept="application/json, .txt">
                                 </div>
                                 <div class="form-group" id="password3">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password3">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass3"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass3" placeholder="Password">
                                 </div>
+                                <div class="form-goup" id="passwordX3" style="display: none">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX3" placeholder="Encrypted private key">
+                                </div><hr>
                             </div>
 
                             <div id="block4" style="display: none">
                                 <br>
-                                <label>Backup JSON 4:</label>
-                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check4"> Read from a file
-                                <br><br>
+                                <label>Backup 4:</label>
+                                <input class="checkFile"  type="checkbox" style="margin-left: 85px" id="checkFile4"> Load backup file
+                                <br>
                                 <div class="form-group" id="backup4">
-                                    <input type="text" class="form-control" ng-model="backUp4">
+                                    <input type="text" class="form-control" ng-model="backUp[4]">
                                 </div>
                                 <div class="form-group" id="backupFile4" style="display: none">
-                                    <input type="file" id="file4">
+                                    <input type="file" ng-model="file4" on-read-file="showContent($fileContent, 4)" accept="application/json, .txt">
                                 </div>
                                 <div class="form-group" id="password4">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password4">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass4"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass4" placeholder="Password">
                                 </div>
+                                <div class="form-goup" id="passwordX4" style="display: none">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX4" placeholder="Encrypted private key">
+                                </div><hr>
                             </div>
 
                             <div id="block5" style="display: none">
                                 <br>
-                                <label>Backup JSON 5:</label>
-                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check5"> Read from a file
-                                <br><br>
+                                <label>Backup 5:</label>
+                                <input class="checkFile"  type="checkbox" style="margin-left: 85px" id="checkFile5"> Load backup file
+                                <br>
                                 <div class="form-group" id="backup5">
-                                    <input type="text" class="form-control" ng-model="backUp5">
+                                    <input type="text" class="form-control" ng-model="backUp[5]">
                                 </div>
                                 <div class="form-group" id="backupFile5" style="display: none">
-                                    <input type="file" id="file5">
+                                    <input type="file" ng-model="file5" on-read-file="showContent($fileContent, 5)" accept="application/json, .txt">
                                 </div>
                                 <div class="form-group" id="password5">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password5">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass5"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass5" placeholder="Password">
                                 </div>
+                                <div class="form-goup" id="passwordX5" style="display: none">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX5" placeholder="Encrypted private key">
+                                </div><hr>
                             </div>
 
                             <div id="block6" style="display: none">
                                 <br>
-                                <label>Backup JSON 6:</label>
-                                <input class="target"  type="checkbox" style="margin-left: 5em" id="check6"> Read from a file
-                                <br><br>
+                                <label>Backup 6:</label>
+                                <input class="checkFile"  type="checkbox" style="margin-left: 85px" id="checkFile6"> Load backup file
+                                <br>
                                 <div class="form-group" id="backup6">
-                                    <input type="text" class="form-control" ng-model="backUp6">
+                                    <input type="text" class="form-control" ng-model="backUp[6]">
                                 </div>
                                 <div class="form-group" id="backupFile6" style="display: none">
-                                    <input type="file" id="file6">
+                                    <input type="file" ng-model="file6" on-read-file="showContent($fileContent, 6)" accept="application/json, .txt">
                                 </div>
-                                <div class="form-group" id="password6">
+                                <div class="form-group" id="password6" style="display: none">
                                     <label>Password:</label>
-                                    <input type="password" class="form-control" ng-model="password6">
+                                    <input class="checkPass" type="checkbox" style="margin-left: 80px" id="checkPass6"> Encrypted private key
+                                    <input type="password" class="form-control" ng-model="pass6" placeholder="Password">
+                                </div>
+                                <div class="form-goup" id="passwordX6">
+                                    <br>
+                                    <input type="password" class="form-control" ng-model="passX6" placeholder="Encrypted private key">
                                 </div>
                             </div>
                         </div>
                     </div>
-
+                    <br>
                     <button class="btn btn-success" ng-click="getDataInput()">Scan addresses</button><br><br>
                     
                     <div id="button2" style="display: none;">

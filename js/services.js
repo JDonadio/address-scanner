@@ -12,7 +12,7 @@ app.service('recoveryServices',['$http', 'lodash',function($http, lodash){
         var network = [];
         var walletId =[];
         var copayerId =[];
-console.log('M Y N: ',m,n);
+
         if(dataInput.length == n){
             var decryptData;
 
@@ -46,9 +46,18 @@ console.log('M Y N: ',m,n);
                     return result;
                 }
 
-                if(!(JSON.parse(decryptData).xPrivKey)){
-                   result = "You are using a backup that can't be use to sign.";
-                   return result;
+                if(!(JSON.parse(decryptData).xPrivKeyEncrypted)){
+                   if(!(JSON.parse(decryptData).xPrivKey)){
+	                   result = "You are using a backup that can't be use to sign.";
+	                   return result;
+					}
+				}else{
+					try {
+                       var decryptXPrivKey = sjcl.decrypt(di.passwordX ,JSON.parse(decryptData).xPrivKeyEncrypted);
+                    } catch(e) {
+                    	result = "Seems like you have a private key password. Click in checkbox and insert one.";
+                    	return result;
+                    }
 				}
 
 				walletId.push(JSON.parse(decryptData).walletId);
@@ -113,15 +122,24 @@ console.log('M Y N: ',m,n);
 		}
 	}
 
-	root.getBackupData = function(backup, password){
+	root.getBackupData = function(backup, password, passwordX){
 		var jBackup = JSON.parse(sjcl.decrypt(password, backup).toString());
 
-		return {
-			network: jBackup.network,
-			xPrivKey: jBackup.xPrivKey,
-			m: jBackup.m,
-			n: jBackup.n
-		};
+		if(!jBackup.xPrivKeyEncrypted){
+			return {
+				network: jBackup.network,
+				xPrivKey: jBackup.xPrivKey,
+				m: jBackup.m,
+				n: jBackup.n
+			};
+		}else{
+			return {
+				network: jBackup.network,
+				xPrivKey: sjcl.decrypt(passwordX ,jBackup.xPrivKeyEncrypted),
+				m: jBackup.m,
+				n: jBackup.n	
+			}
+		}
 	}
 
 	root.getActiveAddresses = function(backupData, path, n, callback){
@@ -259,6 +277,28 @@ console.log('M Y N: ',m,n);
 
 	return root;
 }]);
+
+app.directive('onReadFile', function ($parse){
+	return {
+		restrict: 'A',
+		scope: false,
+		link: function(scope, element, attrs){
+            var fn = $parse(attrs.onReadFile);
+            
+			element.on('change', function(onChangeEvent){
+				var reader = new FileReader();
+                
+				reader.onload = function(onLoadEvent){
+					scope.$apply(function(){
+						fn(scope, {$fileContent:onLoadEvent.target.result});
+					});
+				};
+
+				reader.readAsText((onChangeEvent.srcElement || onChangeEvent.target).files[0]);
+			});
+		}
+	};
+});
 
 
 
